@@ -1,49 +1,29 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/jsirianni/zfssnap/internal/logger"
+	"github.com/spf13/cobra"
 )
 
 var (
 	appLogger logger.Logger
 
-	// Global configuration populated from env and flags.
 	flagZFSPath string
 	flagTimeout time.Duration
 	flagLogType string
 )
 
-func initDefaultsFromEnv() {
-	if v := strings.TrimSpace(os.Getenv("ZFSSNAP_ZFS_PATH")); v != "" {
-		flagZFSPath = v
-	}
-	if v := strings.TrimSpace(os.Getenv("ZFSSNAP_TIMEOUT")); v != "" {
-		if d, err := time.ParseDuration(v); err == nil {
-			flagTimeout = d
-		}
-	}
-	if v := strings.TrimSpace(os.Getenv("ZFSSNAP_LOG_TYPE")); v != "" {
-		flagLogType = strings.ToLower(v)
-	}
-}
-
-func bindGlobalFlags() {
-	if flagTimeout <= 0 {
-		flagTimeout = 30 * time.Second
-	}
-	if flagLogType == "" {
-		flagLogType = "plain"
-	}
-
-	flag.StringVar(&flagZFSPath, "zfs-path", flagZFSPath, "Path to zfs binary (default: detected)")
-	flag.DurationVar(&flagTimeout, "timeout", flagTimeout, "Command timeout")
-	flag.StringVar(&flagLogType, "log-type", flagLogType, "Logger type: plain or json")
+var rootCmd = &cobra.Command{
+	Use:   "zfssnap",
+	Short: "ZFS snapshot utility",
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		return initLogger()
+	},
 }
 
 func initLogger() error {
@@ -62,49 +42,22 @@ func initLogger() error {
 	return nil
 }
 
-func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s [global flags] <command> [command flags]\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "\nCommands:\n")
-	fmt.Fprintf(os.Stderr, "  list\t\tList ZFS snapshots\n")
-	fmt.Fprintf(os.Stderr, "  version\tShow version information\n")
-	fmt.Fprintf(os.Stderr, "\nGlobal Flags:\n")
-	flag.PrintDefaults()
+func init() {
+	rootCmd.PersistentFlags().StringVar(&flagZFSPath, "zfs-path", "", "Path to zfs binary (default: detected)")
+	rootCmd.PersistentFlags().DurationVar(&flagTimeout, "timeout", 30*time.Second, "Command timeout")
+	rootCmd.PersistentFlags().StringVar(&flagLogType, "log-type", "plain", "Logger type: plain or json")
+
+	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(versionCmd)
 }
 
 func main() {
-	initDefaultsFromEnv()
-	bindGlobalFlags()
-	flag.Usage = usage
-	flag.Parse()
-
-	if err := initLogger(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	if err := rootCmd.Execute(); err != nil {
+		if appLogger != nil {
+			appLogger.Error(err.Error())
+		} else {
+			fmt.Fprintln(os.Stderr, err)
+		}
 		os.Exit(1)
-	}
-
-	args := flag.Args()
-	if len(args) == 0 {
-		usage()
-		os.Exit(2)
-	}
-
-	subcmd := args[0]
-	subArgs := args[1:]
-
-	switch subcmd {
-	case "list":
-		if err := listSubcommand(subArgs); err != nil {
-			appLogger.Error(err.Error())
-			os.Exit(1)
-		}
-	case "version":
-		if err := versionSubcommand(subArgs); err != nil {
-			appLogger.Error(err.Error())
-			os.Exit(1)
-		}
-	default:
-		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", subcmd)
-		usage()
-		os.Exit(2)
 	}
 }
