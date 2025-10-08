@@ -1,4 +1,4 @@
-.PHONY: build clean gosec lint test
+.PHONY: build clean gosec lint staticcheck govulncheck test
 
 BINARY_NAME=zfssnap
 BUILD_DIR=bin
@@ -30,6 +30,12 @@ gosec:
 
 lint:
 	revive -config revive.toml ./...
+
+staticcheck:
+	staticcheck ./...
+
+govulncheck:
+	govulncheck ./...
 
 clean:
 	rm -rf $(BUILD_DIR)
