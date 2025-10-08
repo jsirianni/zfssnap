@@ -45,7 +45,7 @@ func initLogger() error {
 func init() {
 	rootCmd.PersistentFlags().StringVar(&flagZFSPath, "zfs-bin", "", "Path to zfs binary (default: detected)")
 	rootCmd.PersistentFlags().DurationVar(&flagTimeout, "timeout", 30*time.Second, "Command timeout")
-	rootCmd.PersistentFlags().StringVar(&flagLogType, "log-type", "plain", "Logger type: plain or json")
+	rootCmd.PersistentFlags().StringVar(&flagLogType, "output", "plain", "Output format: plain or json")
 
 	rootCmd.AddCommand(listCmd)
 	rootCmd.AddCommand(versionCmd)
