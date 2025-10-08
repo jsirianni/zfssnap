@@ -10,7 +10,12 @@ import (
 
 func listSubcommand(args []string) error {
 	fs := flag.NewFlagSet("list", flag.ContinueOnError)
-	_ = fs.Parse(args)
+	if err := fs.Parse(args); err != nil {
+		if err == flag.ErrHelp {
+			return nil
+		}
+		return err
+	}
 
 	ctx := context.Background()
 	s := zfs.NewSnapshot(

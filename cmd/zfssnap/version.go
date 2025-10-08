@@ -9,7 +9,12 @@ import (
 
 func versionSubcommand(args []string) error {
 	fs := flag.NewFlagSet("version", flag.ContinueOnError)
-	_ = fs.Parse(args)
+	if err := fs.Parse(args); err != nil {
+		if err == flag.ErrHelp {
+			return nil
+		}
+		return err
+	}
 
 	appLogger.Info(version.Version())
 	return nil
