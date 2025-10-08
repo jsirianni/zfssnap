@@ -21,9 +21,6 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "zfssnap",
 	Short: "ZFS snapshot utility",
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		return initLogger()
-	},
 }
 
 func initLogger() error {
@@ -43,7 +40,7 @@ func initLogger() error {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&flagZFSPath, "zfs-bin", "", "Path to zfs binary (default: detected)")
+	rootCmd.PersistentFlags().StringVar(&flagZFSPath, "zfs-bin", "", "Path to zfs binary (default: detect in $PATH)")
 	rootCmd.PersistentFlags().DurationVar(&flagTimeout, "timeout", 30*time.Second, "Command timeout")
 	rootCmd.PersistentFlags().StringVar(&flagLogType, "output", "plain", "Output format: plain or json")
 
@@ -52,12 +49,18 @@ func init() {
 }
 
 func main() {
+	if err := rootCmd.ParseFlags(os.Args[1:]); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	if err := initLogger(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
 	if err := rootCmd.Execute(); err != nil {
-		if appLogger != nil {
-			appLogger.Error(err.Error())
-		} else {
-			fmt.Fprintln(os.Stderr, err)
-		}
+		appLogger.Error(err.Error())
 		os.Exit(1)
 	}
 }
