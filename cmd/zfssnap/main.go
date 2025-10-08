@@ -50,17 +50,17 @@ func init() {
 
 func main() {
 	if err := rootCmd.ParseFlags(os.Args[1:]); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintf(os.Stderr, "parse flags: %v\n", err)
 		os.Exit(1)
 	}
 
 	if err := initLogger(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintf(os.Stderr, "initialize logger: %v\n", err)
 		os.Exit(1)
 	}
 
 	if err := rootCmd.Execute(); err != nil {
-		appLogger.Error(err.Error())
+		appLogger.Error(fmt.Sprintf("execute command: %v", err))
 		os.Exit(1)
 	}
 }
