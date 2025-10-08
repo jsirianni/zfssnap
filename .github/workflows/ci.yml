@@ -48,10 +48,9 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          VERSION=$(cat VERSION)
           COMMIT_HASH=$(git rev-parse --short HEAD)
           BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          LDFLAGS="-X github.com/jsirianni/zfssnap/internal/version.semver=${VERSION} -X github.com/jsirianni/zfssnap/internal/version.commitHash=${COMMIT_HASH} -X github.com/jsirianni/zfssnap/internal/version.buildTime=${BUILD_TIME}"
+          LDFLAGS="-X github.com/jsirianni/zfssnap/internal/version.commitHash=${COMMIT_HASH} -X github.com/jsirianni/zfssnap/internal/version.buildTime=${BUILD_TIME}"
           go build -ldflags "${LDFLAGS}" -o zfssnap-${GOOS}-${GOARCH} ./cmd/zfssnap
 
       - name: Test version command
