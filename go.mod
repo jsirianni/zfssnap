@@ -1,6 +1,6 @@
 module github.com/jsirianni/zfssnap
 
-go 1.21
+go 1.25
 
 require go.uber.org/zap v1.26.0
 
