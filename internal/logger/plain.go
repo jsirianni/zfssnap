@@ -11,9 +11,16 @@ type PlainLogger struct{}
 
 var _ Logger = PlainLogger{}
 
-func (PlainLogger) Info(args ...any)  { fmt.Fprintln(os.Stdout, fmt.Sprint(args...)) }
-func (PlainLogger) Warn(args ...any)  { fmt.Fprintln(os.Stdout, fmt.Sprint(args...)) }
+// Info logs informational messages.
+func (PlainLogger) Info(args ...any) { fmt.Fprintln(os.Stdout, fmt.Sprint(args...)) }
+
+// Warn logs warning messages.
+func (PlainLogger) Warn(args ...any) { fmt.Fprintln(os.Stdout, fmt.Sprint(args...)) }
+
+// Error logs error messages.
 func (PlainLogger) Error(args ...any) { fmt.Fprintln(os.Stderr, fmt.Sprint(args...)) }
+
+// Debug logs debug messages.
 func (PlainLogger) Debug(args ...any) { fmt.Fprintln(os.Stdout, fmt.Sprint(args...)) }
 
 // MarshalJSON is provided so PlainLogger can be safely marshaled if needed.

@@ -1,3 +1,4 @@
+// Package main implements the zfssnap CLI.
 package main
 
 import (

@@ -1,3 +1,4 @@
+// Package zfs provides ZFS snapshot management functionality.
 package zfs
 
 import (
@@ -9,7 +10,10 @@ import (
 	"time"
 )
 
+// DefaultZFSBinary is the default path to the zfs binary.
 const DefaultZFSBinary = "zfs"
+
+// DefaultTimeout is the default timeout for ZFS operations.
 const DefaultTimeout = 30 * time.Second
 
 // SnapshotInfo represents a ZFS snapshot and its associated metadata.
@@ -141,11 +145,11 @@ func (c *Snapshot) List(ctx context.Context) ([]string, error) {
 }
 
 // Create creates a snapshot. Stub: returns nil for now.
-func (c *Snapshot) Create(ctx context.Context, name, dataset string) error {
+func (c *Snapshot) Create(_ context.Context, _, _ string) error {
 	return nil
 }
 
 // Delete destroys a snapshot.
-func (c *Snapshot) Delete(ctx context.Context, name string) error {
+func (c *Snapshot) Delete(_ context.Context, _ string) error {
 	return nil
 }

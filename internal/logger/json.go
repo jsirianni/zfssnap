@@ -1,3 +1,4 @@
+// Package logger provides logging implementations for the application.
 package logger
 
 import (
@@ -16,6 +17,7 @@ type JSONLogger struct {
 
 var _ Logger = (*JSONLogger)(nil)
 
+// NewJSONLogger creates a new JSON logger using zap.
 func NewJSONLogger() (*JSONLogger, error) {
 	encCfg := zapcore.EncoderConfig{
 		TimeKey:    "ts",
@@ -38,9 +40,16 @@ func NewJSONLogger() (*JSONLogger, error) {
 	return &JSONLogger{logger: logger}, nil
 }
 
-func (l *JSONLogger) Info(args ...any)  { l.logger.Sugar().Info(args...) }
-func (l *JSONLogger) Warn(args ...any)  { l.logger.Sugar().Warn(args...) }
+// Info logs informational messages.
+func (l *JSONLogger) Info(args ...any) { l.logger.Sugar().Info(args...) }
+
+// Warn logs warning messages.
+func (l *JSONLogger) Warn(args ...any) { l.logger.Sugar().Warn(args...) }
+
+// Error logs error messages.
 func (l *JSONLogger) Error(args ...any) { l.logger.Sugar().Error(args...) }
+
+// Debug logs debug messages.
 func (l *JSONLogger) Debug(args ...any) { l.logger.Sugar().Debug(args...) }
 
 // MarshalJSON is provided so JSONLogger can be safely marshaled if needed.
