@@ -65,7 +65,8 @@ func initLogger() error {
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage: %s [global flags] <command> [command flags]\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "\nCommands:\n")
-	fmt.Fprintf(os.Stderr, "  list\tList ZFS snapshots\n")
+	fmt.Fprintf(os.Stderr, "  list\t\tList ZFS snapshots\n")
+	fmt.Fprintf(os.Stderr, "  version\tShow version information\n")
 	fmt.Fprintf(os.Stderr, "\nGlobal Flags:\n")
 	flag.PrintDefaults()
 }
@@ -93,6 +94,11 @@ func main() {
 	switch subcmd {
 	case "list":
 		if err := listSubcommand(subArgs); err != nil {
+			appLogger.Error(err.Error())
+			os.Exit(1)
+		}
+	case "version":
+		if err := versionSubcommand(subArgs); err != nil {
 			appLogger.Error(err.Error())
 			os.Exit(1)
 		}
