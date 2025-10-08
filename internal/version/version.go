@@ -2,8 +2,8 @@
 package version
 
 var (
-	// semver is the semantic version.
-	semver = "v0.0.1-alpha.0"
+	// semver is the semantic version, injected at build time.
+	semver = "dev"
 
 	// commitHash is the git commit hash, injected at build time.
 	commitHash = "unknown"
