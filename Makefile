@@ -6,7 +6,7 @@ CMD_DIR=./cmd/zfssnap
 
 VERSION=$(shell cat VERSION)
 COMMIT_HASH=$(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-BUILD_TIME=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+BUILD_TIME=$(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 LDFLAGS=-ldflags "\
 	-X github.com/jsirianni/zfssnap/internal/version.semver=$(VERSION) \
