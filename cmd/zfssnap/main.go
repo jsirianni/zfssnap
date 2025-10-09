@@ -50,7 +50,6 @@ func init() {
 	rootCmd.PersistentFlags().DurationVar(&flagTimeout, "timeout", 30*time.Second, "Command timeout")
 	rootCmd.PersistentFlags().StringVarP(&flagLogType, "output", "o", "plain", "Output format: plain or json")
 
-	rootCmd.AddCommand(listCmd)
 	rootCmd.AddCommand(getCmd)
 	rootCmd.AddCommand(createCmd)
 	rootCmd.AddCommand(versionCmd)

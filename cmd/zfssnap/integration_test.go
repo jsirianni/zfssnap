@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func TestListCommand(t *testing.T) {
+func TestGetCommandListAll(t *testing.T) {
 	testData := testutil.NewTestData()
 	mockSnapshotter := testData.CreateMockSnapshotter()
 
@@ -42,14 +42,14 @@ zroot/var/tmp@test
 
 			// Create a test command
 			cmd := &cobra.Command{
-				Use: "test-list",
+				Use: "test-get-list",
 			}
 
 			// Set up flags
 			flagLogType = tt.outputFormat
 
 			// Create a test runner that uses our mock
-			runListWithMock := func(cmd *cobra.Command, args []string) error {
+			runGetListWithMock := func(cmd *cobra.Command, args []string) error {
 				ctx := context.Background()
 				names, err := mockSnapshotter.List(ctx)
 				if err != nil {
@@ -63,7 +63,7 @@ zroot/var/tmp@test
 				return model.OutputStringArray(names, &buf)
 			}
 
-			err := runListWithMock(cmd, []string{})
+			err := runGetListWithMock(cmd, []string{})
 			if err != nil {
 				t.Fatalf("Unexpected error: %v", err)
 			}
