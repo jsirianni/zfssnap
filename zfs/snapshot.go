@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 
@@ -239,4 +240,76 @@ func parseUint(s string) (uint64, error) {
 		v = v*10 + uint64(c-'0')
 	}
 	return v, nil
+}
+
+// ZFS naming constraints based on Oracle Solaris ZFS Administration Guide:
+// - Each component: alphanumeric + underscore (_), hyphen (-), colon (:), period (.)
+// - Must start with alphanumeric character
+// - Cannot contain percent sign (%)
+// - Cannot have empty components
+// - Maximum 255 characters total
+// - Snapshot format: dataset@snapshot
+
+var (
+	// zfsComponentRegex validates individual ZFS path components
+	zfsComponentRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.:-]*$`)
+
+	// zfsDatasetRegex validates full dataset paths (pool/dataset1/dataset2)
+	zfsDatasetRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.:-]*(/[a-zA-Z0-9][a-zA-Z0-9_.:-]*)*$`)
+
+	// zfsSnapshotRegex validates snapshot names (dataset@snapshot)
+	zfsSnapshotRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.:-]*(/[a-zA-Z0-9][a-zA-Z0-9_.:-]*)*@[a-zA-Z0-9][a-zA-Z0-9_.:-]*$`)
+)
+
+// IsValidSnapshotName validates ZFS snapshot names according to official specifications.
+// Format: dataset@snapshot where both parts follow ZFS naming rules.
+func IsValidSnapshotName(name string) bool {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return false
+	}
+
+	// Check total length (255 char limit)
+	if len(name) > 255 {
+		return false
+	}
+
+	// Check for percent sign (not allowed)
+	if strings.Contains(name, "%") {
+		return false
+	}
+
+	// Check for empty components (consecutive slashes, leading/trailing slashes)
+	if strings.Contains(name, "//") || strings.HasPrefix(name, "/") || strings.HasSuffix(name, "/") {
+		return false
+	}
+
+	// Validate snapshot format: dataset@snapshot
+	return zfsSnapshotRegex.MatchString(name)
+}
+
+// IsValidDatasetName validates ZFS dataset names according to official specifications.
+func IsValidDatasetName(name string) bool {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return false
+	}
+
+	// Check total length (255 char limit)
+	if len(name) > 255 {
+		return false
+	}
+
+	// Check for percent sign (not allowed)
+	if strings.Contains(name, "%") {
+		return false
+	}
+
+	// Check for empty components
+	if strings.Contains(name, "//") || strings.HasPrefix(name, "/") || strings.HasSuffix(name, "/") {
+		return false
+	}
+
+	// Validate dataset format
+	return zfsDatasetRegex.MatchString(name)
 }

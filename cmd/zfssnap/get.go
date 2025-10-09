@@ -39,6 +39,13 @@ var getCmd = &cobra.Command{
 			}
 		}
 
+		// Validate all snapshot names
+		for _, name := range snapshotNames {
+			if !zfs.IsValidSnapshotName(name) {
+				return fmt.Errorf("invalid snapshot name format: %s (must contain @)", name)
+			}
+		}
+
 		ctx := context.Background()
 		s := zfs.NewSnapshot(
 			zfs.WithZFSPath(flagZFSPath),
