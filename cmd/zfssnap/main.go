@@ -51,6 +51,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&flagLogType, "output", "plain", "Output format: plain or json")
 
 	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(getCmd)
 	rootCmd.AddCommand(versionCmd)
 }
 

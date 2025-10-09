@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/jsirianni/zfssnap/model"
 )
 
 // DefaultZFSBinary is the default path to the zfs binary.
@@ -16,48 +18,7 @@ const DefaultZFSBinary = "zfs"
 // DefaultTimeout is the default timeout for ZFS operations.
 const DefaultTimeout = 30 * time.Second
 
-// SnapshotInfo represents a ZFS snapshot and its associated metadata.
-// Fields are based on OpenZFS properties commonly exposed by `zfs get`.
-type SnapshotInfo struct {
-	// Fully qualified snapshot name: pool/dataset@snap
-	Name string
-
-	// Parent dataset name without the @ snapshot component
-	Dataset string
-
-	// Creation time of the snapshot
-	Creation time.Time
-
-	// Space that would be freed if the snapshot were destroyed (bytes)
-	Used uint64
-
-	// Space accessible by this snapshot, including shared data (bytes)
-	Referenced uint64
-
-	// Datasets that are clones of this snapshot
-	Clones []string
-
-	// Whether the snapshot is marked for deferred destroy
-	DeferDestroy bool
-
-	// Logical space consumed by this snapshot, ignoring compression/dedup (bytes)
-	LogicalUsed uint64
-
-	// Logical space accessible by this snapshot (bytes)
-	LogicalReferenced uint64
-
-	// Globally unique identifier for this snapshot
-	GUID uint64
-
-	// Number of user holds on this snapshot
-	UserRefs uint64
-
-	// Amount of space written to this snapshot since the previous snapshot (bytes)
-	Written uint64
-
-	// Dataset type; for snapshots this is typically "snapshot"
-	Type string
-}
+// SnapshotInfo moved to model.Snapshot
 
 // Option configures the Snapshot implementation.
 type Option func(*Snapshot)
@@ -152,4 +113,130 @@ func (c *Snapshot) Create(_ context.Context, _, _ string) error {
 // Delete destroys a snapshot.
 func (c *Snapshot) Delete(_ context.Context, _ string) error {
 	return nil
+}
+
+// Get returns detailed information for a given snapshot using `zfs get`.
+func (c *Snapshot) Get(ctx context.Context, name string) (*model.Snapshot, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, fmt.Errorf("snapshot name is required")
+	}
+
+	// Query properties in a single call; -H for scriptable, -p for parsable numbers
+	props := []string{
+		"name", "creation", "used", "referenced", "clones", "defer_destroy",
+		"logicalused", "logicalreferenced", "guid", "userrefs", "written", "type",
+	}
+	args := []string{"get", "-H", "-p", "-o", "property,value", strings.Join(props, ","), name}
+
+	ctx, cancel := context.WithTimeout(ctx, c.Timeout)
+	defer cancel()
+
+	cmd := c.execContext(ctx, c.ZFSPath, args...)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("zfs get failed: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	out := strings.TrimSpace(stdout.String())
+	if out == "" {
+		return nil, fmt.Errorf("snapshot not found: %s", name)
+	}
+
+	info := &model.Snapshot{}
+	// Parse lines of the form: <name>\t<property>\t<value>\t- (with -o property,value we expect: <property>\t<value>)
+	// But because we used -o property,value and provided dataset, output is lines: <name>\t<property>\t<value>\t<source>
+	// We'll split on newlines and then fields by tabs, taking property and value from positions 1 and 2.
+	lines := strings.Split(out, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		fields := strings.Split(line, "\t")
+		if len(fields) < 3 {
+			continue
+		}
+		// fields[0]=dataset@snap, fields[1]=property, fields[2]=value
+		prop := fields[1]
+		val := fields[2]
+		switch prop {
+		case "name":
+			info.Name = val
+			if at := strings.Index(val, "@"); at > 0 {
+				info.Dataset = val[:at]
+			}
+		case "creation":
+			// creation is seconds since epoch with -p
+			if v, err := parseUint(val); err == nil {
+				info.Creation = time.Unix(int64(v), 0).UTC()
+			}
+		case "used":
+			if v, err := parseUint(val); err == nil {
+				info.Used = v
+			}
+		case "referenced":
+			if v, err := parseUint(val); err == nil {
+				info.Referenced = v
+			}
+		case "clones":
+			if val == "-" || val == "" {
+				info.Clones = nil
+			} else {
+				info.Clones = strings.Split(val, ",")
+			}
+		case "defer_destroy":
+			info.DeferDestroy = val == "on" || val == "yes" || val == "1"
+		case "logicalused":
+			if v, err := parseUint(val); err == nil {
+				info.LogicalUsed = v
+			}
+		case "logicalreferenced":
+			if v, err := parseUint(val); err == nil {
+				info.LogicalReferenced = v
+			}
+		case "guid":
+			if v, err := parseUint(val); err == nil {
+				info.GUID = v
+			}
+		case "userrefs":
+			if v, err := parseUint(val); err == nil {
+				info.UserRefs = v
+			}
+		case "written":
+			if v, err := parseUint(val); err == nil {
+				info.Written = v
+			}
+		case "type":
+			info.Type = val
+		}
+	}
+
+	// If name was not emitted, fall back to provided
+	if info.Name == "" {
+		info.Name = name
+		if at := strings.Index(name, "@"); at > 0 {
+			info.Dataset = name[:at]
+		}
+	}
+	return info, nil
+}
+
+// parseUint parses a positive integer, returning 0 on error.
+func parseUint(s string) (uint64, error) {
+	s = strings.TrimSpace(s)
+	if s == "" || s == "-" {
+		return 0, fmt.Errorf("empty")
+	}
+	var v uint64
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c < '0' || c > '9' {
+			return 0, fmt.Errorf("invalid")
+		}
+		v = v*10 + uint64(c-'0')
+	}
+	return v, nil
 }
