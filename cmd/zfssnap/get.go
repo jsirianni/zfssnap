@@ -2,21 +2,40 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/jsirianni/zfssnap/zfs"
 	"github.com/spf13/cobra"
 )
 
 var getCmd = &cobra.Command{
-	Use:   "get <snapshot>",
+	Use:   "get [snapshot]",
 	Short: "Get details for a ZFS snapshot",
-	Args:  cobra.ExactArgs(1),
+	Long:  "Get details for a ZFS snapshot. If no snapshot name is provided, reads from stdin.",
+	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		snapshotName := args[0]
+		var snapshotName string
+		if len(args) > 0 {
+			snapshotName = args[0]
+		} else {
+			// Read from stdin
+			scanner := bufio.NewScanner(os.Stdin)
+			if scanner.Scan() {
+				snapshotName = strings.TrimSpace(scanner.Text())
+			}
+			if err := scanner.Err(); err != nil {
+				return fmt.Errorf("read from stdin: %w", err)
+			}
+			if snapshotName == "" {
+				return fmt.Errorf("no snapshot name provided")
+			}
+		}
+
 		ctx := context.Background()
 		s := zfs.NewSnapshot(
 			zfs.WithZFSPath(flagZFSPath),
