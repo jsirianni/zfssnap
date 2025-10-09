@@ -56,11 +56,11 @@ zroot/var/tmp@test
 					return err
 				}
 
-				// Use model methods for output formatting
+				// Use output functions for formatting
 				if flagLogType == "json" {
-					return model.OutputStringArrayJSON(names, &buf)
+					return outputStringArrayJSON(names, &buf)
 				}
-				return model.OutputStringArray(names, &buf)
+				return outputStringArray(names, &buf)
 			}
 
 			err := runGetListWithMock(cmd, []string{})
@@ -152,14 +152,14 @@ zroot/var/mail@test2
 					snapshots = append(snapshots, info)
 				}
 
-				// Use model methods for output formatting
+				// Use output functions for formatting
 				if flagLogType == "json" {
 					if len(snapshots) == 1 {
-						return snapshots[0].OutputJSON(&buf)
+						return outputSnapshotJSON(snapshots[0], &buf)
 					}
-					return snapshots[0].OutputJSONArray(snapshots, &buf)
+					return outputSnapshotJSONArray(snapshots, &buf)
 				}
-				return snapshots[0].OutputPlainArray(snapshots, &buf)
+				return outputSnapshotPlainArray(snapshots, &buf)
 			}
 
 			err := runGetWithMock(cmd, tt.args)
@@ -255,14 +255,14 @@ zroot/var/mail@test2
 					snapshots = append(snapshots, info)
 				}
 
-				// Use model methods for output formatting
+				// Use output functions for formatting
 				if flagLogType == "json" {
 					if len(snapshots) == 1 {
-						return snapshots[0].OutputJSON(&buf)
+						return outputSnapshotJSON(snapshots[0], &buf)
 					}
-					return snapshots[0].OutputJSONArray(snapshots, &buf)
+					return outputSnapshotJSONArray(snapshots, &buf)
 				}
-				return snapshots[0].OutputPlainArray(snapshots, &buf)
+				return outputSnapshotPlainArray(snapshots, &buf)
 			}
 
 			err := runGetStdinWithMock(cmd, []string{})

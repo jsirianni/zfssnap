@@ -68,11 +68,11 @@ Examples:
 					return fmt.Errorf("list snapshots: %w", err)
 				}
 
-				// Use model methods for output formatting
+				// Use output functions for formatting
 				if flagLogType == "json" {
-					return model.OutputStringArrayJSON(names, os.Stdout)
+					return outputStringArrayJSON(names, os.Stdout)
 				}
-				return model.OutputStringArray(names, os.Stdout)
+				return outputStringArray(names, os.Stdout)
 			}
 		}
 
@@ -86,13 +86,13 @@ Examples:
 			snapshots = append(snapshots, info)
 		}
 
-		// Use model methods for output formatting
+		// Use output functions for formatting
 		if flagLogType == "json" {
 			if len(snapshots) == 1 {
-				return snapshots[0].OutputJSON(os.Stdout)
+				return outputSnapshotJSON(snapshots[0], os.Stdout)
 			}
-			return snapshots[0].OutputJSONArray(snapshots, os.Stdout)
+			return outputSnapshotJSONArray(snapshots, os.Stdout)
 		}
-		return snapshots[0].OutputPlainArray(snapshots, os.Stdout)
+		return outputSnapshotPlainArray(snapshots, os.Stdout)
 	},
 }
