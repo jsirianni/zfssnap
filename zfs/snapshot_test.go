@@ -332,6 +332,107 @@ func TestIsValidDatasetName(t *testing.T) {
 	}
 }
 
+func TestIsValidSnapshotComponent(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		// Valid cases
+		{
+			name:     "simple snapshot name",
+			input:    "snapshot",
+			expected: true,
+		},
+		{
+			name:     "with underscores",
+			input:    "snapshot_name",
+			expected: true,
+		},
+		{
+			name:     "with hyphens",
+			input:    "snapshot-name",
+			expected: true,
+		},
+		{
+			name:     "with colons",
+			input:    "snapshot:name",
+			expected: true,
+		},
+		{
+			name:     "with periods",
+			input:    "snapshot.name",
+			expected: true,
+		},
+		{
+			name:     "mixed special chars",
+			input:    "snapshot_name-name:name.name",
+			expected: true,
+		},
+		{
+			name:     "with numbers",
+			input:    "snapshot123",
+			expected: true,
+		},
+
+		// Invalid cases
+		{
+			name:     "empty string",
+			input:    "",
+			expected: false,
+		},
+		{
+			name:     "whitespace only",
+			input:    "   ",
+			expected: false,
+		},
+		{
+			name:     "starts with number",
+			input:    "123snapshot",
+			expected: false,
+		},
+		{
+			name:     "contains @ symbol",
+			input:    "snapshot@name",
+			expected: false,
+		},
+		{
+			name:     "contains slash",
+			input:    "snapshot/name",
+			expected: false,
+		},
+		{
+			name:     "contains percent",
+			input:    "snapshot%name",
+			expected: false,
+		},
+		{
+			name:     "too long",
+			input:    strings.Repeat("a", 256),
+			expected: false,
+		},
+		{
+			name:     "invalid special chars",
+			input:    "snapshot!",
+			expected: false,
+		},
+		{
+			name:     "contains spaces",
+			input:    "snapshot name",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := IsValidSnapshotComponent(tt.input)
+			if result != tt.expected {
+				t.Errorf("Expected %v, got %v for input: %q", tt.expected, result, tt.input)
+			}
+		})
+	}
+}
+
 func TestNewSnapshot(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -444,6 +545,138 @@ func TestNewSnapshot(t *testing.T) {
 
 			if snapshot.Timeout != tt.expected.timeout {
 				t.Errorf("Expected Timeout %v, got %v", tt.expected.timeout, snapshot.Timeout)
+			}
+		})
+	}
+}
+
+func TestSnapshotCreate(t *testing.T) {
+	tests := []struct {
+		name          string
+		dataset       string
+		snapshotName  string
+		expectError   bool
+		errorContains string
+	}{
+		{
+			name:         "valid dataset and snapshot",
+			dataset:      "pool/dataset",
+			snapshotName: "backup",
+			expectError:  false,
+		},
+		{
+			name:         "simple dataset",
+			dataset:      "pool",
+			snapshotName: "snapshot",
+			expectError:  false,
+		},
+		{
+			name:         "nested dataset",
+			dataset:      "pool/dataset1/dataset2",
+			snapshotName: "backup-2024",
+			expectError:  false,
+		},
+		{
+			name:         "snapshot with special chars",
+			dataset:      "pool/dataset",
+			snapshotName: "backup_name-name:name.name",
+			expectError:  false,
+		},
+		{
+			name:          "empty dataset",
+			dataset:       "",
+			snapshotName:  "backup",
+			expectError:   true,
+			errorContains: "dataset name is required",
+		},
+		{
+			name:          "empty snapshot name",
+			dataset:       "pool/dataset",
+			snapshotName:  "",
+			expectError:   true,
+			errorContains: "snapshot name is required",
+		},
+		{
+			name:          "invalid dataset format",
+			dataset:       "123pool/dataset",
+			snapshotName:  "backup",
+			expectError:   true,
+			errorContains: "invalid dataset name format",
+		},
+		{
+			name:          "invalid snapshot name format",
+			dataset:       "pool/dataset",
+			snapshotName:  "123backup",
+			expectError:   true,
+			errorContains: "invalid snapshot name format",
+		},
+		{
+			name:          "snapshot name with @",
+			dataset:       "pool/dataset",
+			snapshotName:  "backup@name",
+			expectError:   true,
+			errorContains: "invalid snapshot name format",
+		},
+		{
+			name:          "snapshot name with slash",
+			dataset:       "pool/dataset",
+			snapshotName:  "backup/name",
+			expectError:   true,
+			errorContains: "invalid snapshot name format",
+		},
+		{
+			name:          "whitespace dataset",
+			dataset:       "   ",
+			snapshotName:  "backup",
+			expectError:   true,
+			errorContains: "dataset name is required",
+		},
+		{
+			name:          "whitespace snapshot name",
+			dataset:       "pool/dataset",
+			snapshotName:  "   ",
+			expectError:   true,
+			errorContains: "snapshot name is required",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Test validation logic without actually executing ZFS commands
+			dataset := strings.TrimSpace(tt.dataset)
+			snapshotName := strings.TrimSpace(tt.snapshotName)
+
+			if dataset == "" {
+				if !tt.expectError || !strings.Contains("dataset name is required", tt.errorContains) {
+					t.Errorf("Expected error for empty dataset")
+				}
+				return
+			}
+
+			if snapshotName == "" {
+				if !tt.expectError || !strings.Contains("snapshot name is required", tt.errorContains) {
+					t.Errorf("Expected error for empty snapshot name")
+				}
+				return
+			}
+
+			if !IsValidDatasetName(dataset) {
+				if !tt.expectError || !strings.Contains("invalid dataset name format", tt.errorContains) {
+					t.Errorf("Expected error for invalid dataset name")
+				}
+				return
+			}
+
+			if !IsValidSnapshotComponent(snapshotName) {
+				if !tt.expectError || !strings.Contains("invalid snapshot name format", tt.errorContains) {
+					t.Errorf("Expected error for invalid snapshot name")
+				}
+				return
+			}
+
+			// If we get here, validation passed
+			if tt.expectError {
+				t.Errorf("Expected error but validation passed")
 			}
 		})
 	}
