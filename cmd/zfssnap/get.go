@@ -4,7 +4,6 @@ package main
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -55,20 +54,13 @@ var getCmd = &cobra.Command{
 			snapshots = append(snapshots, info)
 		}
 
-		// Respect output mode set at root; plain prints names for compatibility,
-		// json prints the full array as single-line JSON.
-		switch flagLogType {
-		case "json":
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetEscapeHTML(false)
-			if err := enc.Encode(snapshots); err != nil {
-				return fmt.Errorf("encode json: %w", err)
+		// Use model methods for output formatting
+		if flagLogType == "json" {
+			if len(snapshots) == 1 {
+				return snapshots[0].OutputJSON(os.Stdout)
 			}
-		default:
-			for _, snapshot := range snapshots {
-				appLogger.Info(snapshot.Name)
-			}
+			return snapshots[0].OutputJSONArray(snapshots, os.Stdout)
 		}
-		return nil
+		return snapshots[0].OutputPlainArray(snapshots, os.Stdout)
 	},
 }

@@ -1,6 +1,11 @@
 package model
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"time"
+)
 
 // Snapshot represents a ZFS snapshot and its associated metadata.
 // Fields are based on OpenZFS properties commonly exposed by `zfs get`.
@@ -43,4 +48,80 @@ type Snapshot struct {
 
 	// Dataset type; for snapshots this is typically "snapshot"
 	Type string `json:"type"`
+}
+
+// encodeJSON writes the snapshot as JSON to the provided writer.
+func (s *Snapshot) encodeJSON(w io.Writer) error {
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+	return enc.Encode(s)
+}
+
+// encodeJSONArray writes an array of snapshots as JSON to the provided writer.
+func encodeJSONArray(snapshots []*Snapshot, w io.Writer) error {
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+	return enc.Encode(snapshots)
+}
+
+// EncodeJSON writes the snapshot as JSON to the provided writer.
+func (s *Snapshot) EncodeJSON(w io.Writer) error {
+	return s.encodeJSON(w)
+}
+
+// EncodeJSONArray writes an array of snapshots as JSON to the provided writer.
+func EncodeJSONArray(snapshots []*Snapshot, w io.Writer) error {
+	return encodeJSONArray(snapshots, w)
+}
+
+// OutputJSON writes the snapshot as JSON to the provided writer.
+func (s *Snapshot) OutputJSON(w io.Writer) error {
+	return s.EncodeJSON(w)
+}
+
+// OutputPlain writes the snapshot name as plain text to the provided writer.
+func (s *Snapshot) OutputPlain(w io.Writer) error {
+	_, err := fmt.Fprintln(w, s.Name)
+	return err
+}
+
+// OutputJSONArray writes an array of snapshots as JSON to the provided writer.
+// Single snapshot outputs as object, multiple snapshots as array.
+func (s *Snapshot) OutputJSONArray(snapshots []*Snapshot, w io.Writer) error {
+	if len(snapshots) == 1 {
+		return snapshots[0].encodeJSON(w)
+	}
+	return encodeJSONArray(snapshots, w)
+}
+
+// OutputPlainArray writes snapshot names as plain text (one per line) to the provided writer.
+func (s *Snapshot) OutputPlainArray(snapshots []*Snapshot, w io.Writer) error {
+	for _, snapshot := range snapshots {
+		if err := snapshot.OutputPlain(w); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// OutputStringArray writes strings as plain text (one per line) to the provided writer.
+func OutputStringArray(strings []string, w io.Writer) error {
+	for _, str := range strings {
+		if _, err := fmt.Fprintln(w, str); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// outputStringArrayJSON writes strings as JSON array to the provided writer.
+func outputStringArrayJSON(strings []string, w io.Writer) error {
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+	return enc.Encode(strings)
+}
+
+// OutputStringArrayJSON writes strings as JSON array to the provided writer.
+func OutputStringArrayJSON(strings []string, w io.Writer) error {
+	return outputStringArrayJSON(strings, w)
 }

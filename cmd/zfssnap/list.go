@@ -3,7 +3,9 @@ package main
 
 import (
 	"context"
+	"os"
 
+	"github.com/jsirianni/zfssnap/model"
 	"github.com/jsirianni/zfssnap/zfs"
 	"github.com/spf13/cobra"
 )
@@ -21,9 +23,11 @@ var listCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		for _, n := range names {
-			appLogger.Info(n)
+
+		// Use model methods for output formatting
+		if flagLogType == "json" {
+			return model.OutputStringArrayJSON(names, os.Stdout)
 		}
-		return nil
+		return model.OutputStringArray(names, os.Stdout)
 	},
 }
