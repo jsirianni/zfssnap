@@ -93,7 +93,7 @@ func NewTestData() *TestData {
 			"zroot/var/tmp@test": {
 				Name:              "zroot/var/tmp@test",
 				Dataset:           "zroot/var/tmp",
-				Creation:          time.Unix(1759890169, 0).UTC(),
+				Creation:          time.Date(2025, 8, 7, 0, 22, 49, 0, time.UTC),
 				Used:              65536,
 				Referenced:        114688,
 				Clones:            nil,
@@ -108,7 +108,7 @@ func NewTestData() *TestData {
 			"zroot/var/mail@test2": {
 				Name:              "zroot/var/mail@test2",
 				Dataset:           "zroot/var/mail",
-				Creation:          time.Unix(1759890169, 0).UTC(),
+				Creation:          time.Date(2025, 8, 7, 0, 22, 49, 0, time.UTC),
 				Used:              65536,
 				Referenced:        114688,
 				Clones:            nil,

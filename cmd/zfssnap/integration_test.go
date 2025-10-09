@@ -98,7 +98,7 @@ func TestGetCommand(t *testing.T) {
 			name:         "single snapshot json output",
 			args:         []string{"zroot/var/tmp@test"},
 			outputFormat: "json",
-			expectedOutput: `{"name":"zroot/var/tmp@test","dataset":"zroot/var/tmp","creation":"2025-08-07T00:22:49Z","used":65536,"referenced":114688,"clones":null,"defer_destroy":false,"logical_used":0,"logical_referenced":48128,"guid":16532700914722816504,"user_refs":0,"written":114688,"type":"snapshot"}
+			expectedOutput: `{"name":"zroot/var/tmp@test","dataset":"zroot/var/tmp","creation":"2025-08-07T00:22:49Z","used":65536,"referenced":114688,"defer_destroy":false,"logical_used":0,"logical_referenced":48128,"guid":16532700914722816504,"user_refs":0,"written":114688,"type":"snapshot"}
 `,
 		},
 		{
@@ -212,7 +212,7 @@ zroot/var/mail@test2
 			name:         "stdin multiple snapshots json",
 			stdinInput:   "zroot/var/tmp@test\nzroot/var/mail@test2\n",
 			outputFormat: "json",
-			expectedOutput: `[{"name":"zroot/var/tmp@test","dataset":"zroot/var/tmp","creation":"2025-08-07T00:22:49Z","used":65536,"referenced":114688,"clones":null,"defer_destroy":false,"logical_used":0,"logical_referenced":48128,"guid":16532700914722816504,"user_refs":0,"written":114688,"type":"snapshot"},{"name":"zroot/var/mail@test2","dataset":"zroot/var/mail","creation":"2025-08-07T00:22:49Z","used":65536,"referenced":114688,"clones":null,"defer_destroy":false,"logical_used":0,"logical_referenced":48128,"guid":16532700914722816504,"user_refs":0,"written":114688,"type":"snapshot"}]
+			expectedOutput: `[{"name":"zroot/var/tmp@test","dataset":"zroot/var/tmp","creation":"2025-08-07T00:22:49Z","used":65536,"referenced":114688,"defer_destroy":false,"logical_used":0,"logical_referenced":48128,"guid":16532700914722816504,"user_refs":0,"written":114688,"type":"snapshot"},{"name":"zroot/var/mail@test2","dataset":"zroot/var/mail","creation":"2025-08-07T00:22:49Z","used":65536,"referenced":114688,"defer_destroy":false,"logical_used":0,"logical_referenced":48128,"guid":16532700914722816504,"user_refs":0,"written":114688,"type":"snapshot"}]
 `,
 		},
 	}

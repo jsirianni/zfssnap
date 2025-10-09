@@ -252,13 +252,14 @@ func parseUint(s string) (uint64, error) {
 
 var (
 	// zfsComponentRegex validates individual ZFS path components
-	zfsComponentRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.:-]*$`)
+	// Must start with letter, not number
+	zfsComponentRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_.:-]*$`)
 
 	// zfsDatasetRegex validates full dataset paths (pool/dataset1/dataset2)
-	zfsDatasetRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.:-]*(/[a-zA-Z0-9][a-zA-Z0-9_.:-]*)*$`)
+	zfsDatasetRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_.:-]*(/[a-zA-Z][a-zA-Z0-9_.:-]*)*$`)
 
 	// zfsSnapshotRegex validates snapshot names (dataset@snapshot)
-	zfsSnapshotRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.:-]*(/[a-zA-Z0-9][a-zA-Z0-9_.:-]*)*@[a-zA-Z0-9][a-zA-Z0-9_.:-]*$`)
+	zfsSnapshotRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_.:-]*(/[a-zA-Z][a-zA-Z0-9_.:-]*)*@[a-zA-Z][a-zA-Z0-9_.:-]*$`)
 )
 
 // IsValidSnapshotName validates ZFS snapshot names according to official specifications.
