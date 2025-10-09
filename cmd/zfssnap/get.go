@@ -68,11 +68,24 @@ Examples:
 					return fmt.Errorf("list snapshots: %w", err)
 				}
 
+				// Get detailed information for all snapshots
+				var snapshots []*model.Snapshot
+				for _, snapshotName := range names {
+					info, err := s.Get(ctx, snapshotName)
+					if err != nil {
+						return fmt.Errorf("get snapshot %s: %w", snapshotName, err)
+					}
+					snapshots = append(snapshots, info)
+				}
+
 				// Use output functions for formatting
 				if flagLogType == "json" {
-					return outputStringArrayJSON(names, os.Stdout)
+					if len(snapshots) == 1 {
+						return outputSnapshotJSON(snapshots[0], os.Stdout)
+					}
+					return outputSnapshotJSONArray(snapshots, os.Stdout)
 				}
-				return outputStringArray(names, os.Stdout)
+				return outputSnapshotPlainArray(snapshots, os.Stdout)
 			}
 		}
 

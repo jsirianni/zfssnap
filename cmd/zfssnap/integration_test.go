@@ -31,7 +31,7 @@ zroot/var/tmp@test
 		{
 			name:         "json output",
 			outputFormat: "json",
-			expectedOutput: `["zroot/var/mail@test2","zroot/var/tmp@test"]
+			expectedOutput: `[{"name":"zroot/var/mail@test2","dataset":"zroot/var/mail","creation":"2025-08-07T00:22:49Z","used":65536,"referenced":114688,"defer_destroy":false,"logical_used":0,"logical_referenced":48128,"guid":16532700914722816504,"user_refs":0,"written":114688,"type":"snapshot"},{"name":"zroot/var/tmp@test","dataset":"zroot/var/tmp","creation":"2025-08-07T00:22:49Z","used":65536,"referenced":114688,"defer_destroy":false,"logical_used":0,"logical_referenced":48128,"guid":16532700914722816504,"user_refs":0,"written":114688,"type":"snapshot"}]
 `,
 		},
 	}
@@ -56,11 +56,24 @@ zroot/var/tmp@test
 					return err
 				}
 
+				// Get detailed information for all snapshots
+				var snapshots []*model.Snapshot
+				for _, snapshotName := range names {
+					info, err := mockSnapshotter.Get(ctx, snapshotName)
+					if err != nil {
+						return err
+					}
+					snapshots = append(snapshots, info)
+				}
+
 				// Use output functions for formatting
 				if flagLogType == "json" {
-					return outputStringArrayJSON(names, &buf)
+					if len(snapshots) == 1 {
+						return outputSnapshotJSON(snapshots[0], &buf)
+					}
+					return outputSnapshotJSONArray(snapshots, &buf)
 				}
-				return outputStringArray(names, &buf)
+				return outputSnapshotPlainArray(snapshots, &buf)
 			}
 
 			err := runGetListWithMock(cmd, []string{})
