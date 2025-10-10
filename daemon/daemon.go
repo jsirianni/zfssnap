@@ -1,4 +1,4 @@
-// Package daemon provides daemon services with OpenTelemetry metrics.
+// Package daemon provides daemon services with Prometheus metrics.
 package daemon
 
 import (
@@ -8,57 +8,87 @@ import (
 	"time"
 
 	"github.com/jsirianni/zfssnap/zfs"
-	"go.opentelemetry.io/otel/exporters/prometheus"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 )
 
-// Daemon represents a daemon service with OpenTelemetry metrics.
-type Daemon struct {
-	snapshot     *zfs.Snapshot
-	promExporter *prometheus.Exporter
-	httpServer   *http.Server
-	logger       *zap.Logger
+var (
+	// snapshotCountGauge tracks the total number of ZFS snapshots
+	snapshotCountGauge = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "zfs_snapshot_count",
+		Help: "Total number of ZFS snapshots",
+	})
+)
+
+func init() {
+	// Register the Prometheus metrics
+	prometheus.MustRegister(snapshotCountGauge)
 }
 
-// New creates a new Daemon instance with OpenTelemetry metrics.
+// Daemon represents a daemon service with Prometheus metrics.
+type Daemon struct {
+	snapshot   *zfs.Snapshot
+	httpServer *http.Server
+	logger     *zap.Logger
+}
+
+// New creates a new Daemon instance with Prometheus metrics.
 func New(ctx context.Context, serviceName, serviceVersion string, log *zap.Logger) (*Daemon, error) {
 	snapshotter := zfs.NewSnapshot()
 
-	promExporter, err := initMetrics(ctx, serviceName, serviceVersion, snapshotter)
-	if err != nil {
-		return nil, fmt.Errorf("initialize metrics: %w", err)
-	}
-
 	daemon := &Daemon{
-		snapshot:     snapshotter,
-		promExporter: promExporter,
-		logger:       log,
+		snapshot: snapshotter,
+		logger:   log,
 	}
 
 	return daemon, nil
 }
 
-// Start starts the HTTP server for metrics.
-func (d *Daemon) Start(_ context.Context, addr string) error {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/metrics", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
+// updateSnapshotCount updates the Prometheus gauge with the current snapshot count
+func (d *Daemon) updateSnapshotCount() {
+	ctx := context.Background()
+	snapshots, err := d.snapshot.List(ctx)
+	if err != nil {
+		d.logger.Error("list snapshots", zap.Error(err))
+		return
+	}
 
-		// For now, manually collect the snapshot count
-		ctx := context.Background()
-		snapshots, err := d.snapshot.List(ctx)
-		if err != nil {
-			d.logger.Error("failed to list snapshots", zap.Error(err))
-			http.Error(w, fmt.Sprintf("Error listing snapshots: %v", err), http.StatusInternalServerError)
+	snapshotCountGauge.Set(float64(len(snapshots)))
+}
+
+// startMetricUpdates starts a goroutine that periodically updates metrics
+func (d *Daemon) startMetricUpdates(ctx context.Context) {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
 			return
+		case <-ticker.C:
+			d.updateSnapshotCount()
 		}
+	}
+}
 
-		count := len(snapshots)
+// Start starts the HTTP server for metrics.
+func (d *Daemon) Start(ctx context.Context, addr string) error {
+	// Update metrics before starting server
+	d.updateSnapshotCount()
 
-		// Write Prometheus format metrics
-		fmt.Fprintf(w, "# HELP zfs_snapshot_count Total number of ZFS snapshots\n")
-		fmt.Fprintf(w, "# TYPE zfs_snapshot_count gauge\n")
-		fmt.Fprintf(w, "zfs_snapshot_count{source=\"daemon\"} %d\n", count)
+	// Start periodic metric updates
+	go d.startMetricUpdates(ctx)
+
+	mux := http.NewServeMux()
+
+	// Use the proper Prometheus HTTP handler
+	mux.Handle("/metrics", promhttp.Handler())
+
+	// Add a health check endpoint
+	mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "OK")
 	})
 
 	d.httpServer = &http.Server{
