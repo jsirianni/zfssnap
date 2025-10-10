@@ -1,10 +1,13 @@
 # zfssnap
 
+> **⚠️ Work in Progress**: This utility is currently under active development. Features and APIs may change between versions.
+
 A ZFS snapshot utility with CLI commands and Prometheus metrics daemon for managing and monitoring ZFS snapshots.
 
 ## Table of Contents
 
 - [Features](#features)
+- [Supported Operating Systems](#supported-operating-systems)
 - [Installation](#installation)
   - [Build from Source](#build-from-source)
   - [Dependencies](#dependencies)
@@ -30,6 +33,15 @@ A ZFS snapshot utility with CLI commands and Prometheus metrics daemon for manag
 - **JSON Output**: Structured output for easy parsing and integration
 - **Input Validation**: Robust validation of ZFS dataset and snapshot names
 - **Structured Logging**: JSON logging with zap for production use
+
+## Supported Operating Systems
+
+- **FreeBSD 14+**: Fully supported and tested
+- **OpenZFS FreeBSD**: Any FreeBSD distribution with OpenZFS should work
+- **OpenZFS Linux**: Any Linux distribution with OpenZFS should work
+
+**Requirements:**
+- The `zfs` command must be available in the system `$PATH`
 
 ## Installation
 
