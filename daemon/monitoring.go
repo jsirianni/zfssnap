@@ -14,10 +14,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
 )
 
-const (
-	DefaultPrometheusPort = ":9464"
-)
-
 var (
 	meter              metric.Meter
 	snapshotCountGauge metric.Int64ObservableGauge

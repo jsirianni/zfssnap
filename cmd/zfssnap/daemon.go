@@ -75,6 +75,6 @@ collects ZFS snapshot counts using OpenTelemetry callbacks.`,
 }
 
 func init() {
-	daemonCmd.Flags().StringVarP(&daemonAddr, "addr", "a", ":9464", "Address to bind the metrics server")
+	daemonCmd.Flags().StringVarP(&daemonAddr, "addr", "a", "localhost:9464", "Address to bind the metrics server")
 	rootCmd.AddCommand(daemonCmd)
 }

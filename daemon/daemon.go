@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/jsirianni/zfssnap/internal/logger"
 	"github.com/jsirianni/zfssnap/zfs"
@@ -38,7 +39,7 @@ func New(ctx context.Context, serviceName, serviceVersion string, log logger.Log
 }
 
 // Start starts the HTTP server for metrics.
-func (d *Daemon) Start(ctx context.Context, addr string) error {
+func (d *Daemon) Start(_ context.Context, addr string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
@@ -49,7 +50,11 @@ func (d *Daemon) Start(ctx context.Context, addr string) error {
 		}
 	})
 
-	d.httpServer = &http.Server{Addr: addr, Handler: mux}
+	d.httpServer = &http.Server{
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 30 * time.Second,
+	}
 	d.logger.Info("HTTP server starting", "addr", addr+"/metrics")
 
 	go func() {
