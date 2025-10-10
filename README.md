@@ -2,6 +2,27 @@
 
 A ZFS snapshot utility with CLI commands and Prometheus metrics daemon for managing and monitoring ZFS snapshots.
 
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+  - [Build from Source](#build-from-source)
+  - [Dependencies](#dependencies)
+- [CLI Usage](#cli-usage)
+  - [Global Flags](#global-flags)
+  - [Commands](#commands)
+    - [`get` - List or Get Snapshot Details](#get---list-or-get-snapshot-details)
+    - [`create` - Create Snapshots](#create---create-snapshots)
+    - [`version` - Show Version Information](#version---show-version-information)
+    - [`daemon` - Run as Prometheus Metrics Daemon](#daemon---run-as-prometheus-metrics-daemon)
+- [Daemon API](docs/api.md)
+- [Data Models](#data-models)
+  - [Snapshot Object](#snapshot-object)
+- [Examples](#examples)
+  - [Complete Workflow](#complete-workflow)
+  - [Integration with Scripts](#integration-with-scripts)
+- [License](#license)
+
 ## Features
 
 - **CLI Commands**: List, get details, and create ZFS snapshots
@@ -160,59 +181,6 @@ zfssnap daemon --addr "192.168.1.100:9464"
 - Periodic metric updates (every 30 seconds)
 - Graceful shutdown on SIGINT/SIGTERM
 - Structured JSON logging
-
-## Daemon API
-
-### HTTP Endpoints
-
-#### `GET /metrics`
-
-Prometheus metrics endpoint. Returns metrics in Prometheus exposition format.
-
-**Sample Output:**
-```
-# HELP zfs_snapshot_count Total number of ZFS snapshots
-# TYPE zfs_snapshot_count gauge
-zfs_snapshot_count 3
-```
-
-**Metrics:**
-- `zfs_snapshot_count`: Current total number of ZFS snapshots
-
-#### `GET /health`
-
-Health check endpoint for monitoring daemon status.
-
-**Response:**
-- **200 OK**: Daemon is healthy
-- **500 Internal Server Error**: Daemon has issues
-
-**Sample Output:**
-```
-OK
-```
-
-### Monitoring Integration
-
-#### Prometheus Configuration
-
-Add to your `prometheus.yml`:
-
-```yaml
-scrape_configs:
-  - job_name: 'zfssnap'
-    static_configs:
-      - targets: ['localhost:9464']
-    scrape_interval: 30s
-    metrics_path: /metrics
-```
-
-#### Grafana Dashboard
-
-Use the `zfs_snapshot_count` metric to create dashboards showing:
-- Total snapshot count over time
-- Snapshot count trends
-- Alerting when snapshot count drops unexpectedly
 
 ## Data Models
 

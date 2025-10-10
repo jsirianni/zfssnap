@@ -1,6 +1,6 @@
 ---
 description: Enforce documentation updates for CLI and API changes
-globs: ["**/*.go", "README.md"]
+globs: ["**/*.go", "README.md", "docs/*.md"]
 alwaysApply: true
 ---
 
@@ -22,6 +22,7 @@ alwaysApply: true
 - **Endpoint modifications**: Update existing endpoint descriptions, parameters, or responses
 - **Response format changes**: Update sample responses and data structure documentation
 - **Configuration changes**: Update daemon flags and configuration options
+- **API documentation**: Update `docs/api.md` for daemon-specific changes
 
 ### Data Model Changes
 - **Struct field changes**: Update the Snapshot object documentation table
@@ -61,16 +62,31 @@ When making CLI or API changes:
 
 1. **Identify changes**: Determine what documentation needs updating
 2. **Update relevant sections**: Modify the appropriate README sections
-3. **Verify examples**: Ensure all examples are accurate and work
-4. **Check consistency**: Verify documentation matches actual implementation
-5. **Test examples**: Verify documented examples actually work
+3. **Rebuild Table of Contents**: Update the TOC to reflect any new, removed, or renamed sections
+4. **Verify examples**: Ensure all examples are accurate and work
+5. **Check consistency**: Verify documentation matches actual implementation
+6. **Test examples**: Verify documented examples actually work
+
+## Table of Contents Requirements
+
+- **TOC Updates**: ALWAYS update the Table of Contents when:
+  - Adding new sections
+  - Removing sections
+  - Renaming sections
+  - Reordering sections
+  - Adding new subsections
+
+- **TOC Format**: Use proper markdown anchor links with lowercase, hyphenated anchors
+- **TOC Structure**: Maintain hierarchical indentation (2 spaces per level)
+- **TOC Accuracy**: Ensure all links work and point to correct sections
 
 ## Enforcement
 
 This rule is **MANDATORY** for all CLI and API changes. The AI agent must:
 - Check if changes affect CLI or API
 - Update README.md accordingly
+- **Rebuild Table of Contents** if sections are added, removed, renamed, or reordered
 - Verify documentation accuracy
 - Include updated documentation in the same commit/change
 
-**No CLI or API changes should be completed without corresponding README updates.**
+**No CLI or API changes should be completed without corresponding README updates and TOC maintenance.**
