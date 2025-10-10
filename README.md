@@ -236,37 +236,6 @@ The `Snapshot` struct represents a ZFS snapshot with the following fields:
 | `written` | uint64 | Space written since previous snapshot (bytes) |
 | `type` | string | Dataset type (typically "snapshot") |
 
-## Validation Rules
-
-### ZFS Dataset Names
-- Must start with a letter
-- Can contain letters, numbers, underscores, periods, colons, and hyphens
-- Cannot contain `%` character
-- Cannot have empty components
-- Maximum 255 characters
-
-### ZFS Snapshot Names
-- Must contain exactly one `@` character
-- Dataset part must be valid dataset name
-- Snapshot part must be valid snapshot component
-- Snapshot component: letters, numbers, underscores, periods, colons, hyphens
-- Cannot start with number
-
-## Error Handling
-
-- **Validation Errors**: Invalid dataset/snapshot names return clear error messages
-- **ZFS Errors**: ZFS command failures are wrapped with context
-- **Timeout Errors**: Commands timeout after specified duration
-- **Permission Errors**: Clear messages for insufficient privileges
-
-## Logging
-
-All commands use structured JSON logging with the following fields:
-- `ts`: Timestamp (RFC3339Nano format)
-- `level`: Log level (info, error, etc.)
-- `msg`: Log message
-- Additional context fields as needed
-
 ## Examples
 
 ### Complete Workflow
