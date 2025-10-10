@@ -32,7 +32,7 @@ Examples:
   # Read snapshot names from stdin
   echo "pool@snapshot1" | zfssnap get`,
 	Args: cobra.MinimumNArgs(0),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, args []string) error {
 		ctx := context.Background()
 		s := zfs.NewSnapshot(
 			zfs.WithZFSPath(flagZFSPath),

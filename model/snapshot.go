@@ -1,3 +1,4 @@
+// Package model defines data structures for ZFS snapshots.
 package model
 
 import (

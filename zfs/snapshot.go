@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"math"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -218,8 +219,7 @@ func (c *Snapshot) Get(ctx context.Context, name string) (*model.Snapshot, error
 				info.Dataset = val[:at]
 			}
 		case "creation":
-			// creation is seconds since epoch with -p
-			if v, err := parseUint(val); err == nil {
+			if v, err := parseUint(val); err == nil && v <= math.MaxInt64 {
 				info.Creation = time.Unix(int64(v), 0).UTC()
 			}
 		case "used":

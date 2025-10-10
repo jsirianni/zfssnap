@@ -21,7 +21,7 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "zfssnap",
 	Short: "ZFS snapshot utility",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+	PersistentPreRun: func(_ *cobra.Command, _ []string) {
 		if err := initLogger(); err != nil {
 			fmt.Fprintf(os.Stderr, "initialize logger: %v\n", err)
 			os.Exit(1)

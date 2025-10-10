@@ -49,7 +49,7 @@ zroot/var/tmp@test
 			flagLogType = tt.outputFormat
 
 			// Create a test runner that uses our mock
-			runGetListWithMock := func(cmd *cobra.Command, args []string) error {
+			runGetListWithMock := func(_ *cobra.Command, _ []string) error {
 				ctx := context.Background()
 				names, err := mockSnapshotter.List(ctx)
 				if err != nil {
@@ -149,7 +149,7 @@ zroot/var/mail@test2
 			flagLogType = tt.outputFormat
 
 			// Create a test runner that uses our mock
-			runGetWithMock := func(cmd *cobra.Command, args []string) error {
+			runGetWithMock := func(_ *cobra.Command, args []string) error {
 				var snapshotNames []string
 				if len(args) > 0 {
 					snapshotNames = args
@@ -243,18 +243,14 @@ zroot/var/mail@test2
 			flagLogType = tt.outputFormat
 
 			// Create a test runner that uses our mock and stdin
-			runGetStdinWithMock := func(cmd *cobra.Command, args []string) error {
+			runGetStdinWithMock := func(_ *cobra.Command, _ []string) error {
 				var snapshotNames []string
-				if len(args) > 0 {
-					snapshotNames = args
-				} else {
-					// Read from stdin
-					lines := strings.Split(strings.TrimRight(tt.stdinInput, "\n"), "\n")
-					for _, line := range lines {
-						name := strings.TrimSpace(line)
-						if name != "" {
-							snapshotNames = append(snapshotNames, name)
-						}
+				// Read from stdin
+				lines := strings.Split(strings.TrimRight(tt.stdinInput, "\n"), "\n")
+				for _, line := range lines {
+					name := strings.TrimSpace(line)
+					if name != "" {
+						snapshotNames = append(snapshotNames, name)
 					}
 				}
 

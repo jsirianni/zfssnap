@@ -1,3 +1,4 @@
+// Package testutil provides testing utilities and mock implementations.
 package testutil
 
 import (
@@ -127,10 +128,10 @@ func NewTestData() *TestData {
 // CreateMockSnapshotter creates a MockSnapshotter with test data.
 func (td *TestData) CreateMockSnapshotter() *MockSnapshotter {
 	return NewMockSnapshotter().
-		WithListFunc(func(ctx context.Context) ([]string, error) {
+		WithListFunc(func(_ context.Context) ([]string, error) {
 			return td.ListOutput, nil
 		}).
-		WithGetFunc(func(ctx context.Context, name string) (*model.Snapshot, error) {
+		WithGetFunc(func(_ context.Context, name string) (*model.Snapshot, error) {
 			if snapshot, exists := td.GetOutput[name]; exists {
 				return snapshot, nil
 			}

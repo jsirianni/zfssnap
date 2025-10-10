@@ -1,3 +1,4 @@
+// Package daemon provides daemon services with OpenTelemetry metrics.
 package daemon
 
 import (

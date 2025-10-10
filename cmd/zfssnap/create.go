@@ -41,7 +41,7 @@ Examples:
   # Multiple datasets
   zfssnap create pool/dataset1 pool/dataset2 backup-2024-01-15`,
 	Args: cobra.MinimumNArgs(2),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, args []string) error {
 		if len(args) < 2 {
 			return fmt.Errorf("at least dataset and snapshot name are required")
 		}

@@ -51,25 +51,3 @@ func outputSnapshotPlainArray(snapshots []*model.Snapshot, w io.Writer) error {
 	}
 	return nil
 }
-
-// outputStringArray writes strings as plain text (one per line) to the provided writer.
-func outputStringArray(strings []string, w io.Writer) error {
-	for _, str := range strings {
-		if _, err := fmt.Fprintln(w, str); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// encodeStringArrayJSON writes strings as JSON array to the provided writer.
-func encodeStringArrayJSON(strings []string, w io.Writer) error {
-	enc := json.NewEncoder(w)
-	enc.SetEscapeHTML(false)
-	return enc.Encode(strings)
-}
-
-// outputStringArrayJSON writes strings as JSON array to the provided writer.
-func outputStringArrayJSON(strings []string, w io.Writer) error {
-	return encodeStringArrayJSON(strings, w)
-}
