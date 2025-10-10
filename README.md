@@ -15,7 +15,7 @@ A ZFS snapshot utility with CLI commands and Prometheus metrics daemon for manag
     - [`create` - Create Snapshots](#create---create-snapshots)
     - [`version` - Show Version Information](#version---show-version-information)
     - [`daemon` - Run as Prometheus Metrics Daemon](#daemon---run-as-prometheus-metrics-daemon)
-- [Daemon API](docs/api.md)
+- [Daemon API](#daemon-api)
 - [Data Models](#data-models)
   - [Snapshot Object](#snapshot-object)
 - [Examples](#examples)
@@ -181,6 +181,25 @@ zfssnap daemon --addr "192.168.1.100:9464"
 - Periodic metric updates (every 30 seconds)
 - Graceful shutdown on SIGINT/SIGTERM
 - Structured JSON logging
+
+## Daemon API
+
+The zfssnap daemon provides HTTP endpoints for monitoring ZFS snapshots via Prometheus metrics.
+
+For detailed API documentation, see [API Documentation](docs/api.md).
+
+### Quick Start
+
+```bash
+# Start the daemon
+zfssnap daemon
+
+# Check metrics
+curl http://localhost:9464/metrics
+
+# Health check
+curl http://localhost:9464/health
+```
 
 ## Data Models
 

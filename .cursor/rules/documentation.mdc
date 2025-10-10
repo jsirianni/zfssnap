@@ -79,6 +79,7 @@ When making CLI or API changes:
 - **TOC Format**: Use proper markdown anchor links with lowercase, hyphenated anchors
 - **TOC Structure**: Maintain hierarchical indentation (2 spaces per level)
 - **TOC Accuracy**: Ensure all links work and point to correct sections
+- **TOC Links**: NEVER use external links in TOC - only internal anchor links to sections within the same document
 
 ## Enforcement
 
