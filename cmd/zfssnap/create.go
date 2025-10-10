@@ -97,10 +97,7 @@ Examples:
 		}
 
 		// Output results
-		if flagLogType == "json" {
-			return outputCreateResultsJSON(createdSnapshots, errors)
-		}
-		return outputCreateResultsPlain(createdSnapshots, errors)
+		return outputCreateResultsJSON(createdSnapshots, errors)
 	},
 }
 
@@ -135,14 +132,11 @@ func applyNamingTransformations(snapshotName string) string {
 
 func outputCreateResultsJSON(createdSnapshots []string, errors []string) error {
 	// Use the existing JSON output mechanism
-	if flagLogType == "json" {
-		// This would need to be implemented similar to other JSON outputs
-		// For now, just print a simple JSON structure
-		fmt.Printf("{\"created\":%q,\"errors\":%q,\"count\":%d}\n",
-			strings.Join(createdSnapshots, ","),
-			strings.Join(errors, ","),
-			len(createdSnapshots))
-	}
+	// Always output JSON format
+	fmt.Printf("{\"created\":%q,\"errors\":%q,\"count\":%d}\n",
+		strings.Join(createdSnapshots, ","),
+		strings.Join(errors, ","),
+		len(createdSnapshots))
 	return nil
 }
 

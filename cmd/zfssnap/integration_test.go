@@ -18,19 +18,10 @@ func TestGetCommandListAll(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		outputFormat   string
 		expectedOutput string
 	}{
 		{
-			name:         "plain output",
-			outputFormat: "plain",
-			expectedOutput: `zroot/var/mail@test2
-zroot/var/tmp@test
-`,
-		},
-		{
-			name:         "json output",
-			outputFormat: "json",
+			name: "json output",
 			expectedOutput: `[{"name":"zroot/var/mail@test2","dataset":"zroot/var/mail","creation":"2025-08-07T00:22:49Z","used":65536,"referenced":114688,"defer_destroy":false,"logical_used":0,"logical_referenced":48128,"guid":16532700914722816504,"user_refs":0,"written":114688,"type":"snapshot"},{"name":"zroot/var/tmp@test","dataset":"zroot/var/tmp","creation":"2025-08-07T00:22:49Z","used":65536,"referenced":114688,"defer_destroy":false,"logical_used":0,"logical_referenced":48128,"guid":16532700914722816504,"user_refs":0,"written":114688,"type":"snapshot"}]
 `,
 		},
@@ -44,9 +35,6 @@ zroot/var/tmp@test
 			cmd := &cobra.Command{
 				Use: "test-get-list",
 			}
-
-			// Set up flags
-			flagLogType = tt.outputFormat
 
 			// Create a test runner that uses our mock
 			runGetListWithMock := func(_ *cobra.Command, _ []string) error {
@@ -67,13 +55,10 @@ zroot/var/tmp@test
 				}
 
 				// Use output functions for formatting
-				if flagLogType == "json" {
-					if len(snapshots) == 1 {
-						return outputSnapshotJSON(snapshots[0], &buf)
-					}
-					return outputSnapshotJSONArray(snapshots, &buf)
+				if len(snapshots) == 1 {
+					return outputSnapshotJSON(snapshots[0], &buf)
 				}
-				return outputSnapshotPlainArray(snapshots, &buf)
+				return outputSnapshotJSONArray(snapshots, &buf)
 			}
 
 			err := runGetListWithMock(cmd, []string{})
@@ -96,43 +81,24 @@ func TestGetCommand(t *testing.T) {
 	tests := []struct {
 		name           string
 		args           []string
-		outputFormat   string
 		expectedOutput string
 		expectError    bool
 	}{
 		{
-			name:         "single snapshot plain output",
-			args:         []string{"zroot/var/tmp@test"},
-			outputFormat: "plain",
-			expectedOutput: `zroot/var/tmp@test
-`,
-		},
-		{
-			name:         "single snapshot json output",
-			args:         []string{"zroot/var/tmp@test"},
-			outputFormat: "json",
+			name: "single snapshot",
+			args: []string{"zroot/var/tmp@test"},
 			expectedOutput: `{"name":"zroot/var/tmp@test","dataset":"zroot/var/tmp","creation":"2025-08-07T00:22:49Z","used":65536,"referenced":114688,"defer_destroy":false,"logical_used":0,"logical_referenced":48128,"guid":16532700914722816504,"user_refs":0,"written":114688,"type":"snapshot"}
 `,
 		},
 		{
-			name:         "multiple snapshots plain output",
-			args:         []string{"zroot/var/tmp@test", "zroot/var/mail@test2"},
-			outputFormat: "plain",
-			expectedOutput: `zroot/var/tmp@test
-zroot/var/mail@test2
-`,
+			name:        "invalid snapshot name",
+			args:        []string{"invalid-name"},
+			expectError: true,
 		},
 		{
-			name:         "invalid snapshot name",
-			args:         []string{"invalid-name"},
-			outputFormat: "plain",
-			expectError:  true,
-		},
-		{
-			name:         "empty snapshot name",
-			args:         []string{""},
-			outputFormat: "plain",
-			expectError:  true,
+			name:        "empty snapshot name",
+			args:        []string{""},
+			expectError: true,
 		},
 	}
 
@@ -144,9 +110,6 @@ zroot/var/mail@test2
 			cmd := &cobra.Command{
 				Use: "test-get",
 			}
-
-			// Set up flags
-			flagLogType = tt.outputFormat
 
 			// Create a test runner that uses our mock
 			runGetWithMock := func(_ *cobra.Command, args []string) error {
@@ -166,13 +129,10 @@ zroot/var/mail@test2
 				}
 
 				// Use output functions for formatting
-				if flagLogType == "json" {
-					if len(snapshots) == 1 {
-						return outputSnapshotJSON(snapshots[0], &buf)
-					}
-					return outputSnapshotJSONArray(snapshots, &buf)
+				if len(snapshots) == 1 {
+					return outputSnapshotJSON(snapshots[0], &buf)
 				}
-				return outputSnapshotPlainArray(snapshots, &buf)
+				return outputSnapshotJSONArray(snapshots, &buf)
 			}
 
 			err := runGetWithMock(cmd, tt.args)
@@ -203,28 +163,11 @@ func TestGetCommandStdin(t *testing.T) {
 	tests := []struct {
 		name           string
 		stdinInput     string
-		outputFormat   string
 		expectedOutput string
 	}{
 		{
-			name:         "stdin single snapshot plain",
-			stdinInput:   "zroot/var/tmp@test\n",
-			outputFormat: "plain",
-			expectedOutput: `zroot/var/tmp@test
-`,
-		},
-		{
-			name:         "stdin multiple snapshots plain",
-			stdinInput:   "zroot/var/tmp@test\nzroot/var/mail@test2\n",
-			outputFormat: "plain",
-			expectedOutput: `zroot/var/tmp@test
-zroot/var/mail@test2
-`,
-		},
-		{
-			name:         "stdin multiple snapshots json",
-			stdinInput:   "zroot/var/tmp@test\nzroot/var/mail@test2\n",
-			outputFormat: "json",
+			name:       "stdin multiple snapshots",
+			stdinInput: "zroot/var/tmp@test\nzroot/var/mail@test2\n",
 			expectedOutput: `[{"name":"zroot/var/tmp@test","dataset":"zroot/var/tmp","creation":"2025-08-07T00:22:49Z","used":65536,"referenced":114688,"defer_destroy":false,"logical_used":0,"logical_referenced":48128,"guid":16532700914722816504,"user_refs":0,"written":114688,"type":"snapshot"},{"name":"zroot/var/mail@test2","dataset":"zroot/var/mail","creation":"2025-08-07T00:22:49Z","used":65536,"referenced":114688,"defer_destroy":false,"logical_used":0,"logical_referenced":48128,"guid":16532700914722816504,"user_refs":0,"written":114688,"type":"snapshot"}]
 `,
 		},
@@ -238,9 +181,6 @@ zroot/var/mail@test2
 			cmd := &cobra.Command{
 				Use: "test-get-stdin",
 			}
-
-			// Set up flags
-			flagLogType = tt.outputFormat
 
 			// Create a test runner that uses our mock and stdin
 			runGetStdinWithMock := func(_ *cobra.Command, _ []string) error {
@@ -265,13 +205,10 @@ zroot/var/mail@test2
 				}
 
 				// Use output functions for formatting
-				if flagLogType == "json" {
-					if len(snapshots) == 1 {
-						return outputSnapshotJSON(snapshots[0], &buf)
-					}
-					return outputSnapshotJSONArray(snapshots, &buf)
+				if len(snapshots) == 1 {
+					return outputSnapshotJSON(snapshots[0], &buf)
 				}
-				return outputSnapshotPlainArray(snapshots, &buf)
+				return outputSnapshotJSONArray(snapshots, &buf)
 			}
 
 			err := runGetStdinWithMock(cmd, []string{})

@@ -3,19 +3,18 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
-	"github.com/jsirianni/zfssnap/internal/logger"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var (
-	appLogger logger.Logger
+	appLogger *zap.Logger
 
 	flagZFSPath string
 	flagTimeout time.Duration
-	flagLogType string
 )
 
 var rootCmd = &cobra.Command{
@@ -30,25 +29,18 @@ var rootCmd = &cobra.Command{
 }
 
 func initLogger() error {
-	switch strings.ToLower(strings.TrimSpace(flagLogType)) {
-	case "", "plain":
-		appLogger = logger.PlainLogger{}
-	case "json":
-		jl, err := logger.NewJSONLogger()
-		if err != nil {
-			return err
-		}
-		appLogger = jl
-	default:
-		return fmt.Errorf("invalid log type: %s", flagLogType)
-	}
-	return nil
+	config := zap.NewProductionConfig()
+	config.EncoderConfig.TimeKey = "ts"
+	config.EncoderConfig.EncodeTime = zapcore.RFC3339NanoTimeEncoder
+
+	var err error
+	appLogger, err = config.Build()
+	return err
 }
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&flagZFSPath, "zfs-bin", "", "Path to zfs binary (default: detect in $PATH)")
 	rootCmd.PersistentFlags().DurationVar(&flagTimeout, "timeout", 30*time.Second, "Command timeout")
-	rootCmd.PersistentFlags().StringVarP(&flagLogType, "output", "o", "plain", "Output format: plain or json")
 
 	rootCmd.AddCommand(getCmd)
 	rootCmd.AddCommand(createCmd)

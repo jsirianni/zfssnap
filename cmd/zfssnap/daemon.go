@@ -9,9 +9,10 @@ import (
 	"time"
 
 	"github.com/jsirianni/zfssnap/daemon"
-	"github.com/jsirianni/zfssnap/internal/logger"
 	"github.com/jsirianni/zfssnap/internal/version"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var (
@@ -30,14 +31,17 @@ collects ZFS snapshot counts using OpenTelemetry callbacks.`,
 		defer cancel()
 
 		// Force JSON logging for daemon
-		jsonLogger, err := logger.NewJSONLogger()
+		config := zap.NewProductionConfig()
+		config.EncoderConfig.TimeKey = "ts"
+		config.EncoderConfig.EncodeTime = zapcore.RFC3339NanoTimeEncoder
+		zapLogger, err := config.Build()
 		if err != nil {
-			return fmt.Errorf("create JSON logger: %w", err)
+			return fmt.Errorf("create zap logger: %w", err)
 		}
-		defer jsonLogger.Sync()
+		defer zapLogger.Sync()
 
 		// Create daemon instance
-		d, err := daemon.New(ctx, "zfssnap-daemon", version.Version(), jsonLogger)
+		d, err := daemon.New(ctx, "zfssnap-daemon", version.Version(), zapLogger)
 		if err != nil {
 			return fmt.Errorf("create daemon: %w", err)
 		}
@@ -47,7 +51,7 @@ collects ZFS snapshot counts using OpenTelemetry callbacks.`,
 			return fmt.Errorf("start daemon: %w", err)
 		}
 
-		jsonLogger.Info("daemon started successfully", "addr", daemonAddr)
+		zapLogger.Info("daemon started successfully", zap.String("addr", daemonAddr))
 
 		// Wait for interrupt signal
 		sigChan := make(chan os.Signal, 1)
@@ -55,9 +59,9 @@ collects ZFS snapshot counts using OpenTelemetry callbacks.`,
 
 		select {
 		case sig := <-sigChan:
-			jsonLogger.Info("received signal, shutting down", "signal", sig.String())
+			zapLogger.Info("received signal, shutting down", zap.String("signal", sig.String()))
 		case <-ctx.Done():
-			jsonLogger.Info("context cancelled, shutting down")
+			zapLogger.Info("context cancelled, shutting down")
 		}
 
 		// Graceful shutdown
@@ -65,11 +69,11 @@ collects ZFS snapshot counts using OpenTelemetry callbacks.`,
 		defer shutdownCancel()
 
 		if err := d.Stop(shutdownCtx); err != nil {
-			jsonLogger.Error("error stopping daemon", "error", err)
+			zapLogger.Error("error stopping daemon", zap.Error(err))
 			return fmt.Errorf("stop daemon: %w", err)
 		}
 
-		jsonLogger.Info("daemon stopped successfully")
+		zapLogger.Info("daemon stopped successfully")
 		return nil
 	},
 }

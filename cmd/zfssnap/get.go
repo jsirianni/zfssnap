@@ -79,13 +79,10 @@ Examples:
 				}
 
 				// Use output functions for formatting
-				if flagLogType == "json" {
-					if len(snapshots) == 1 {
-						return outputSnapshotJSON(snapshots[0], os.Stdout)
-					}
-					return outputSnapshotJSONArray(snapshots, os.Stdout)
+				if len(snapshots) == 1 {
+					return outputSnapshotJSON(snapshots[0], os.Stdout)
 				}
-				return outputSnapshotPlainArray(snapshots, os.Stdout)
+				return outputSnapshotJSONArray(snapshots, os.Stdout)
 			}
 		}
 
@@ -100,12 +97,9 @@ Examples:
 		}
 
 		// Use output functions for formatting
-		if flagLogType == "json" {
-			if len(snapshots) == 1 {
-				return outputSnapshotJSON(snapshots[0], os.Stdout)
-			}
-			return outputSnapshotJSONArray(snapshots, os.Stdout)
+		if len(snapshots) == 1 {
+			return outputSnapshotJSON(snapshots[0], os.Stdout)
 		}
-		return outputSnapshotPlainArray(snapshots, os.Stdout)
+		return outputSnapshotJSONArray(snapshots, os.Stdout)
 	},
 }
