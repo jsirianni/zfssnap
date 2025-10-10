@@ -5,8 +5,12 @@ on:
 
 jobs:
   build:
-    name: Build Binaries
+    name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, freebsd]
+        goarch: [amd64, arm64]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -17,13 +21,20 @@ jobs:
           go-version-file: 'go.mod'
           cache: true
 
-      - name: Build all targets
-        run: make build
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          chmod +x scripts/*.sh
+          LDFLAGS="$(sh scripts/build-ldflags.sh)"
+          mkdir -p bin
+          go build -ldflags "${LDFLAGS}" -o bin/zfssnap-${GOOS}-${GOARCH} ./cmd/zfssnap
 
-      - name: Upload binaries
+      - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: zfssnap-binaries
-          path: bin/*
+          name: zfssnap-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: bin/zfssnap-${{ matrix.goos }}-${{ matrix.goarch }}
           if-no-files-found: error
 

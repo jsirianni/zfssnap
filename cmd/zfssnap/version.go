@@ -2,15 +2,16 @@
 package main
 
 import (
-	"flag"
-
 	"github.com/jsirianni/zfssnap/internal/version"
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
-func versionSubcommand(args []string) error {
-	fs := flag.NewFlagSet("version", flag.ContinueOnError)
-	_ = fs.Parse(args)
-
-	appLogger.Info(version.Version())
-	return nil
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Show version information",
+	RunE: func(_ *cobra.Command, _ []string) error {
+		appLogger.Info("version", zap.String("version", version.Version()))
+		return nil
+	},
 }
