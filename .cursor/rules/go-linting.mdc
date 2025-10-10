@@ -46,6 +46,16 @@ Before submitting any Go code changes, verify:
 5. ✅ No integer overflow issues
 6. ✅ Error messages don't use "failed to" prefix
 7. ✅ No obvious comments on trivial operations
+8. ✅ README.md updated if CLI/API changes were made
+
+## Documentation Updates
+
+- **README Updates**: ALWAYS update README.md when making changes to:
+  - CLI commands (new commands, flag changes, behavior changes)
+  - Daemon API (new endpoints, response format changes)
+  - Data models (struct field changes, new types)
+  - Configuration options (new flags, default values)
+  - Output formats (JSON structure changes)
 
 ## Enforcement
 

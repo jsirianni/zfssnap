@@ -1,0 +1,76 @@
+---
+description: Enforce documentation updates for CLI and API changes
+globs: ["**/*.go", "README.md"]
+alwaysApply: true
+---
+
+# Documentation Rules
+
+## README Update Requirements
+
+**CRITICAL**: The AI agent MUST update README.md whenever making changes to:
+
+### CLI Changes
+- **New commands**: Add complete command documentation with examples
+- **Command modifications**: Update existing command descriptions, flags, or behavior
+- **Flag changes**: Document new flags, removed flags, or changed default values
+- **Output format changes**: Update sample outputs and format descriptions
+- **Validation changes**: Update validation rules and error handling documentation
+
+### Daemon API Changes
+- **New endpoints**: Add complete endpoint documentation with request/response examples
+- **Endpoint modifications**: Update existing endpoint descriptions, parameters, or responses
+- **Response format changes**: Update sample responses and data structure documentation
+- **Configuration changes**: Update daemon flags and configuration options
+
+### Data Model Changes
+- **Struct field changes**: Update the Snapshot object documentation table
+- **New data types**: Add complete documentation for new structs or types
+- **Field modifications**: Update field descriptions, types, or JSON tags
+
+### Configuration Changes
+- **New global flags**: Document new global flags and their usage
+- **Default value changes**: Update default values in documentation
+- **Environment variables**: Document any new environment variable support
+
+## Documentation Standards
+
+### Command Documentation Must Include:
+- **Usage syntax**: Exact command syntax with examples
+- **Flags**: All flags with descriptions and default values
+- **Examples**: Multiple real-world usage examples
+- **Output format**: Sample JSON output with field descriptions
+- **Error cases**: Common error scenarios and messages
+
+### API Documentation Must Include:
+- **Endpoint URL**: Complete URL path
+- **HTTP method**: GET, POST, etc.
+- **Request format**: Parameters, headers, body format
+- **Response format**: Status codes, response body format
+- **Sample requests/responses**: Complete examples
+- **Error responses**: Error codes and message formats
+
+### Data Model Documentation Must Include:
+- **Field table**: Complete table with field names, types, and descriptions
+- **JSON examples**: Sample JSON objects showing all fields
+- **Validation rules**: Any validation constraints or requirements
+
+## Update Process
+
+When making CLI or API changes:
+
+1. **Identify changes**: Determine what documentation needs updating
+2. **Update relevant sections**: Modify the appropriate README sections
+3. **Verify examples**: Ensure all examples are accurate and work
+4. **Check consistency**: Verify documentation matches actual implementation
+5. **Test examples**: Verify documented examples actually work
+
+## Enforcement
+
+This rule is **MANDATORY** for all CLI and API changes. The AI agent must:
+- Check if changes affect CLI or API
+- Update README.md accordingly
+- Verify documentation accuracy
+- Include updated documentation in the same commit/change
+
+**No CLI or API changes should be completed without corresponding README updates.**
