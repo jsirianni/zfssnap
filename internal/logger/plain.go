@@ -23,5 +23,8 @@ func (PlainLogger) Error(args ...any) { fmt.Fprintln(os.Stderr, fmt.Sprint(args.
 // Debug logs debug messages.
 func (PlainLogger) Debug(args ...any) { fmt.Fprintln(os.Stdout, fmt.Sprint(args...)) }
 
+// Sync flushes any buffered log entries (no-op for plain logger).
+func (PlainLogger) Sync() error { return nil }
+
 // MarshalJSON is provided so PlainLogger can be safely marshaled if needed.
 func (PlainLogger) MarshalJSON() ([]byte, error) { return json.Marshal("plain-logger") }
