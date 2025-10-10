@@ -52,5 +52,8 @@ func (l *JSONLogger) Error(args ...any) { l.logger.Sugar().Error(args...) }
 // Debug logs debug messages.
 func (l *JSONLogger) Debug(args ...any) { l.logger.Sugar().Debug(args...) }
 
+// Sync flushes any buffered log entries.
+func (l *JSONLogger) Sync() error { return l.logger.Sync() }
+
 // MarshalJSON is provided so JSONLogger can be safely marshaled if needed.
 func (l *JSONLogger) MarshalJSON() ([]byte, error) { return json.Marshal("json-logger") }

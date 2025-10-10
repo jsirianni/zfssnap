@@ -16,3 +16,14 @@ LLMs working on this project must read this file fully and apply the style guide
 - **Comments**: Avoid obvious comments. Do not comment on trivial operations like variable assignments, simple error returns, or basic function calls
 - **Function Names**: Use clear, descriptive names. Avoid redundant prefixes
 - **Code Structure**: Keep functions focused and avoid unnecessary complexity
+
+## Common Linting Rules
+
+- **Package Comments**: Every package must have a package comment describing its purpose
+- **Unused Parameters**: Rename unused parameters to `_` (e.g., `func(_ *cobra.Command, _ []string)`)
+- **Unused Functions**: Remove unused functions - they will be flagged by linters
+- **Integer Overflow**: Check for overflow when converting between integer types (e.g., `uint64` to `int64`)
+- **Import Organization**: Keep imports organized and remove unused imports
+- **Variable Naming**: Use descriptive names, avoid single letters except for common patterns (i, j, k for loops)
+- **Error Handling**: Always handle errors, don't ignore them with `_`
+- **Context Parameters**: Always pass context as first parameter in functions that need it

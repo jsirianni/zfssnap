@@ -6,4 +6,5 @@ type Logger interface {
 	Warn(args ...any)
 	Error(args ...any)
 	Debug(args ...any)
+	Sync() error
 }

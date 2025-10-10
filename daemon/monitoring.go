@@ -7,10 +7,15 @@ import (
 	"github.com/jsirianni/zfssnap/zfs"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
+)
+
+const (
+	DefaultPrometheusPort = ":9464"
 )
 
 var (
@@ -19,30 +24,32 @@ var (
 )
 
 // initMetrics initializes metrics and sets up callback registration.
-func initMetrics(ctx context.Context, config *MetricsConfig, snapshotter *zfs.Snapshot) error {
-	if config == nil {
-		return fmt.Errorf("config is required")
+func initMetrics(ctx context.Context, serviceName, serviceVersion string, snapshotter *zfs.Snapshot) (*prometheus.Exporter, error) {
+	if serviceName == "" {
+		return nil, fmt.Errorf("service name is required")
 	}
-
-	if config.ServiceName == "" {
-		return fmt.Errorf("service name is required")
-	}
-	if config.ServiceVersion == "" {
-		return fmt.Errorf("service version is required")
+	if serviceVersion == "" {
+		return nil, fmt.Errorf("service version is required")
 	}
 
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
-			semconv.ServiceNameKey.String(config.ServiceName),
-			semconv.ServiceVersionKey.String(config.ServiceVersion),
+			semconv.ServiceNameKey.String(serviceName),
+			semconv.ServiceVersionKey.String(serviceVersion),
 		),
 	)
 	if err != nil {
-		return fmt.Errorf("create resource: %w", err)
+		return nil, fmt.Errorf("create resource: %w", err)
+	}
+
+	promExporter, err := prometheus.New()
+	if err != nil {
+		return nil, fmt.Errorf("create prometheus exporter: %w", err)
 	}
 
 	meterProvider := sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(res),
+		sdkmetric.WithReader(promExporter),
 	)
 
 	otel.SetMeterProvider(meterProvider)
@@ -54,7 +61,7 @@ func initMetrics(ctx context.Context, config *MetricsConfig, snapshotter *zfs.Sn
 		metric.WithDescription("Current number of ZFS snapshots"),
 	)
 	if err != nil {
-		return fmt.Errorf("create snapshot count gauge: %w", err)
+		return nil, fmt.Errorf("create snapshot count gauge: %w", err)
 	}
 
 	_, err = meter.RegisterCallback(
@@ -75,8 +82,8 @@ func initMetrics(ctx context.Context, config *MetricsConfig, snapshotter *zfs.Sn
 		snapshotCountGauge,
 	)
 	if err != nil {
-		return fmt.Errorf("register snapshot count callback: %w", err)
+		return nil, fmt.Errorf("register snapshot count callback: %w", err)
 	}
 
-	return nil
+	return promExporter, nil
 }

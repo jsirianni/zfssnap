@@ -4,53 +4,67 @@ package daemon
 import (
 	"context"
 	"fmt"
+	"net/http"
 
+	"github.com/jsirianni/zfssnap/internal/logger"
 	"github.com/jsirianni/zfssnap/zfs"
-)
-
-const (
-	// DefaultPrometheusPort is the default port for the Prometheus metrics endpoint.
-	DefaultPrometheusPort = ":9464"
+	"go.opentelemetry.io/otel/exporters/prometheus"
 )
 
 // Daemon represents a daemon service with OpenTelemetry metrics.
 type Daemon struct {
-	snapshot *zfs.Snapshot
-}
-
-// MetricsConfig holds configuration for metrics exporters.
-type MetricsConfig struct {
-	PrometheusPort string
-	ServiceName    string
-	ServiceVersion string
-}
-
-// defaultMetricsConfig returns a default configuration for metrics.
-func defaultMetricsConfig() *MetricsConfig {
-	return &MetricsConfig{
-		PrometheusPort: DefaultPrometheusPort,
-	}
+	snapshot     *zfs.Snapshot
+	promExporter *prometheus.Exporter
+	httpServer   *http.Server
+	logger       logger.Logger
 }
 
 // New creates a new Daemon instance with OpenTelemetry metrics.
-func New(serviceName, serviceVersion string) (*Daemon, error) {
-	config := defaultMetricsConfig()
-	config.ServiceName = serviceName
-	config.ServiceVersion = serviceVersion
-	return newWithConfig(context.Background(), config)
-}
-
-// newWithConfig creates a new Daemon instance with custom metrics configuration.
-func newWithConfig(ctx context.Context, config *MetricsConfig) (*Daemon, error) {
+func New(ctx context.Context, serviceName, serviceVersion string, log logger.Logger) (*Daemon, error) {
 	snapshotter := zfs.NewSnapshot()
 
-	if err := initMetrics(ctx, config, snapshotter); err != nil {
+	promExporter, err := initMetrics(ctx, serviceName, serviceVersion, snapshotter)
+	if err != nil {
 		return nil, fmt.Errorf("initialize metrics: %w", err)
 	}
 
 	daemon := &Daemon{
-		snapshot: snapshotter,
+		snapshot:     snapshotter,
+		promExporter: promExporter,
+		logger:       log,
 	}
 
 	return daemon, nil
+}
+
+// Start starts the HTTP server for metrics.
+func (d *Daemon) Start(ctx context.Context, addr string) error {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
+		err := d.promExporter.Collect(r.Context(), nil)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error collecting metrics: %v", err), http.StatusInternalServerError)
+			return
+		}
+	})
+
+	d.httpServer = &http.Server{Addr: addr, Handler: mux}
+	d.logger.Info("HTTP server starting", "addr", addr+"/metrics")
+
+	go func() {
+		if err := d.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			d.logger.Error("HTTP server error", "error", err)
+		}
+	}()
+
+	return nil
+}
+
+// Stop stops the HTTP server.
+func (d *Daemon) Stop(ctx context.Context) error {
+	if d.httpServer != nil {
+		return d.httpServer.Shutdown(ctx)
+	}
+	return nil
 }
