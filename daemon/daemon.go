@@ -34,7 +34,7 @@ type Daemon struct {
 }
 
 // New creates a new Daemon instance with Prometheus metrics.
-func New(ctx context.Context, serviceName, serviceVersion string, log *zap.Logger) (*Daemon, error) {
+func New(_ context.Context, _, _ string, log *zap.Logger) (*Daemon, error) {
 	snapshotter := zfs.NewSnapshot()
 
 	daemon := &Daemon{

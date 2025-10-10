@@ -1,0 +1,52 @@
+---
+description: Enforce Go linting rules and fix common issues
+globs: ["**/*.go"]
+alwaysApply: true
+---
+
+# Go Linting Rules
+
+## Critical Linting Issues to Always Fix
+
+### Unused Parameters
+- **ALWAYS** rename unused parameters to `_` immediately
+- Examples:
+  - `func(_ *cobra.Command, _ []string)` instead of `func(cmd *cobra.Command, args []string)`
+  - `func(_ context.Context)` instead of `func(ctx context.Context)`
+  - `func(_, _ string)` instead of `func(serviceName, serviceVersion string)`
+
+### Unused Functions
+- **ALWAYS** remove unused functions immediately
+- Check for functions that are never called and delete them
+- Common unused functions: `outputCreateResultsPlain`, `outputSnapshotPlain`, etc.
+
+### Unused Imports
+- **ALWAYS** remove unused imports immediately
+- Use `goimports` or similar tools to organize imports
+- Remove imports that are no longer needed after code changes
+
+### Package Comments
+- **ALWAYS** add package comments to every package
+- Format: `// Package <name> provides <description>.`
+- Examples:
+  - `// Package daemon provides daemon services with Prometheus metrics.`
+  - `// Package model defines data structures for ZFS snapshots.`
+
+### Integer Overflow
+- **ALWAYS** check for overflow when converting between integer types
+- Example: `if v <= math.MaxInt64 { info.Creation = time.Unix(int64(v), 0).UTC() }`
+
+## Pre-commit Checklist
+
+Before submitting any Go code changes, verify:
+1. ✅ All unused parameters renamed to `_`
+2. ✅ All unused functions removed
+3. ✅ All unused imports removed
+4. ✅ All packages have package comments
+5. ✅ No integer overflow issues
+6. ✅ Error messages don't use "failed to" prefix
+7. ✅ No obvious comments on trivial operations
+
+## Enforcement
+
+This rule must be applied to EVERY Go file modification. The AI agent must check and fix these issues before completing any code changes.
