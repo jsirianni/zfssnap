@@ -44,11 +44,21 @@ func (d *Daemon) Start(_ context.Context, addr string) error {
 	mux.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
 
-		// For now, return a simple metrics response
-		// TODO: Implement proper Prometheus metrics collection
+		// For now, manually collect the snapshot count
+		ctx := context.Background()
+		snapshots, err := d.snapshot.List(ctx)
+		if err != nil {
+			d.logger.Error("failed to list snapshots", zap.Error(err))
+			http.Error(w, fmt.Sprintf("Error listing snapshots: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		count := len(snapshots)
+
+		// Write Prometheus format metrics
 		fmt.Fprintf(w, "# HELP zfs_snapshot_count Total number of ZFS snapshots\n")
 		fmt.Fprintf(w, "# TYPE zfs_snapshot_count gauge\n")
-		fmt.Fprintf(w, "zfs_snapshot_count{source=\"daemon\"} 0\n")
+		fmt.Fprintf(w, "zfs_snapshot_count{source=\"daemon\"} %d\n", count)
 	})
 
 	d.httpServer = &http.Server{
