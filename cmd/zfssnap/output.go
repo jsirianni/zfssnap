@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/jsirianni/zfssnap/model"
@@ -27,12 +26,6 @@ func outputSnapshotJSON(s *model.Snapshot, w io.Writer) error {
 	return encodeSnapshotJSON(s, w)
 }
 
-// outputSnapshotPlain writes the snapshot name as plain text to the provided writer.
-func outputSnapshotPlain(s *model.Snapshot, w io.Writer) error {
-	_, err := fmt.Fprintln(w, s.Name)
-	return err
-}
-
 // outputSnapshotJSONArray writes an array of snapshots as JSON to the provided writer.
 // Single snapshot outputs as object, multiple snapshots as array.
 func outputSnapshotJSONArray(snapshots []*model.Snapshot, w io.Writer) error {
@@ -40,14 +33,4 @@ func outputSnapshotJSONArray(snapshots []*model.Snapshot, w io.Writer) error {
 		return encodeSnapshotJSON(snapshots[0], w)
 	}
 	return encodeSnapshotJSONArray(snapshots, w)
-}
-
-// outputSnapshotPlainArray writes snapshot names as plain text (one per line) to the provided writer.
-func outputSnapshotPlainArray(snapshots []*model.Snapshot, w io.Writer) error {
-	for _, snapshot := range snapshots {
-		if err := outputSnapshotPlain(snapshot, w); err != nil {
-			return err
-		}
-	}
-	return nil
 }

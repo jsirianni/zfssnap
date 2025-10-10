@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -137,28 +136,5 @@ func outputCreateResultsJSON(createdSnapshots []string, errors []string) error {
 		strings.Join(createdSnapshots, ","),
 		strings.Join(errors, ","),
 		len(createdSnapshots))
-	return nil
-}
-
-func outputCreateResultsPlain(createdSnapshots []string, errors []string) error {
-	// Output created snapshots
-	for _, snapshot := range createdSnapshots {
-		if flagDryRun {
-			fmt.Printf("Would create: %s\n", snapshot)
-		} else {
-			fmt.Printf("Created: %s\n", snapshot)
-		}
-	}
-
-	// Output errors
-	for _, err := range errors {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-	}
-
-	// Return error if there were any failures
-	if len(errors) > 0 {
-		return fmt.Errorf("failed to create %d snapshot(s)", len(errors))
-	}
-
 	return nil
 }

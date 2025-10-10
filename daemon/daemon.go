@@ -41,7 +41,7 @@ func New(ctx context.Context, serviceName, serviceVersion string, log *zap.Logge
 // Start starts the HTTP server for metrics.
 func (d *Daemon) Start(_ context.Context, addr string) error {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/metrics", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
 
 		// For now, manually collect the snapshot count
